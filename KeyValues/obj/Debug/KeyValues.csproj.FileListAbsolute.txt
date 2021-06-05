@@ -1,0 +1,7 @@
+C:\DevFiles\KeygenTest\KeyValues\bin\Debug\KeyValues.exe.config
+C:\DevFiles\KeygenTest\KeyValues\bin\Debug\KeyValues.exe
+C:\DevFiles\KeygenTest\KeyValues\bin\Debug\KeyValues.pdb
+C:\DevFiles\KeygenTest\KeyValues\obj\Debug\KeyValues.csproj.AssemblyReference.cache
+C:\DevFiles\KeygenTest\KeyValues\obj\Debug\KeyValues.csproj.CoreCompileInputs.cache
+C:\DevFiles\KeygenTest\KeyValues\obj\Debug\KeyValues.exe
+C:\DevFiles\KeygenTest\KeyValues\obj\Debug\KeyValues.pdb
