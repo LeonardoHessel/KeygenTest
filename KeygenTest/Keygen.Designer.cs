@@ -90,6 +90,7 @@ namespace KeygenTest
             this.mtbCNPJ.Name = "mtbCNPJ";
             this.mtbCNPJ.Size = new System.Drawing.Size(163, 26);
             this.mtbCNPJ.TabIndex = 6;
+            this.mtbCNPJ.Text = "11222333000181";
             this.mtbCNPJ.TextMaskFormat = System.Windows.Forms.MaskFormat.ExcludePromptAndLiterals;
             // 
             // dtpCreation

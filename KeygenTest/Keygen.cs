@@ -30,8 +30,12 @@ namespace KeygenTest
             nudValidDays.Value = 30;
         }
 
-        private string Generate(int validDays)
+        private string Generate()
         {
+            DateTime creationDate = dtpCreation.Value.Date;
+            int validDays = int.Parse(nudValidDays.Value.ToString());
+            string cnpj = mtbCNPJ.Text;
+
             this.random = new Random();
             string key = "";
             string chunk = "";
@@ -39,20 +43,20 @@ namespace KeygenTest
             {
                 key = "";
                 chunk = "";
-                while (key.Length < 24)
+                while (key.Length < 23)
                 {
                     int index = random.Next(sampleMinNum.Length);
                     char an = sampleMinNum[index];
                     key += an;
                     chunk += an;
-                    if (chunk.Length == 4 && key.Length < 24)
+                    if (chunk.Length == 5 && key.Length < 23)
                     {
                         key += '-';
                         chunk = "";
                     }
                 }
             }
-            while (!VerifyNew(key, validDays));
+            while (!VerifyKey(key, creationDate, validDays, cnpj));
             key = key.ToUpper();
             return key;
         }
@@ -84,6 +88,74 @@ namespace KeygenTest
                 }
             }
             return false;
+        }
+
+        private bool VerifyKey(string key, DateTime creationDate, int validDays, string cnpj)
+        {
+            string creationYear = creationDate.Year.ToString().Substring(2,2);
+            string creationDay = creationDate.DayOfYear.ToString();
+
+            if (!string.IsNullOrWhiteSpace(key) && key.Length == 23)
+            {
+                string[] chunks = key.Split('-');
+                //char[] keyValues = key.Replace("-", "").ToArray();
+
+                int chunkCount = 0;
+                int score = 0;
+                int checkDigit = 0;
+                int checkDigitCount = 0;
+
+                foreach (string chunk in chunks)
+                {
+                    if (chunk.Length != 5)
+                        return false;
+                    
+                    chunkCount++;
+                    foreach (char charecter in chunk)
+                    {
+                        int value = charecter;
+                        score += value;
+                    }
+                }
+
+                if (GetDay(chunks[2],1) == validDays &&
+                    GetDay(chunks[3], 2) == int.Parse(creationDay) &&
+                    GetYear(chunks[3], 0) == int.Parse(creationYear))
+                {
+                    return true;
+                }
+
+                //if (score == 1882 && checkDigitCount == 4)
+                //{
+
+                //    return true;
+                //}
+            }
+            return false;
+        }
+
+        private int GetDay(string chunk, int indexStart)
+        {
+            int firstDigit = chunk[indexStart];
+            int secondDigit = chunk[indexStart + 1];
+            int thirdDigit = chunk[indexStart + 2];
+
+            string hundred = firstDigit.ToString().Substring(firstDigit.ToString().Length - 1);
+            string dozen = secondDigit.ToString().Substring(secondDigit.ToString().Length - 1);
+            string unit = thirdDigit.ToString().Substring(thirdDigit.ToString().Length - 1);
+
+            return int.Parse(hundred + dozen + unit);
+        }
+
+        private int GetYear(string chunk, int indexStart)
+        {
+            int firstDigit = chunk[indexStart];
+            int secondDigit = chunk[indexStart + 1];
+            
+            string dozen = firstDigit.ToString().Substring(firstDigit.ToString().Length - 1);
+            string unit = secondDigit.ToString().Substring(secondDigit.ToString().Length - 1);
+
+            return int.Parse(dozen + unit);
         }
 
         private bool VerifyNew(string key, int validDays, string CNPJ = "11222333000181")
@@ -148,7 +220,7 @@ namespace KeygenTest
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            txtKeys.Text = Generate(int.Parse(nudValidDays.Value.ToString()));
+            txtKeys.Text = Generate();
         }
 
         private void btnGiveValues_Click(object sender, EventArgs e)
