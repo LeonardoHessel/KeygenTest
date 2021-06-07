@@ -27,39 +27,72 @@ namespace KeygenTest
         private void Keygen_Load(object sender, EventArgs e)
         {
             int validDays = (DateTime.Now.Date.AddMonths(1) - DateTime.Now.Date).Days;
+            mtbCNPJ.Text = "11222333000181";
             nudValidDays.Value = 30;
         }
 
-        private string Generate()
+        private void Generate()
         {
             DateTime creationDate = dtpCreation.Value.Date;
-            int validDays = int.Parse(nudValidDays.Value.ToString());
+            string creatYear = creationDate.Year.ToString().Substring(2);
+            string creatDay = creationDate.DayOfYear.ToString();
+            if (creatDay.Length == 2)
+                creatDay = "0" + creatDay;
+
+            string validDays = nudValidDays.Value.ToString();
+            if (validDays.Length == 2)
+                validDays = "0" + validDays;
+
             string cnpj = mtbCNPJ.Text;
 
             this.random = new Random();
-            string key = "";
             string chunk = "";
+            List<string> chunkList = new List<string>();
+
             do
             {
-                key = "";
-                chunk = "";
-                while (key.Length < 23)
-                {
-                    int index = random.Next(sampleMinNum.Length);
-                    char an = sampleMinNum[index];
-                    key += an;
-                    chunk += an;
-                    if (chunk.Length == 5 && key.Length < 23)
-                    {
-                        key += '-';
-                        chunk = "";
-                    }
-                }
-            }
-            while (!VerifyKey(key, creationDate, validDays, cnpj));
-            key = key.ToUpper();
-            return key;
+                chunk = GenKeyChunk();
+            } while (!(GetYear(chunk, 0) == creatYear && GetDay(chunk, 2) == creatDay));
+
+            chunkList.Add(chunk);
+
+            do
+            {
+                chunk = GenKeyChunk();
+            } while (!(GetDay(chunk, 2) == validDays));
+
+            chunkList.Add(chunk);
+
+            do
+            {
+                chunk = GenKeyChunk();
+            } while (!(GetCNPJRef(chunk, 2) == RefCNPJ(cnpj)));
+
+            chunkList.Add(chunk);
+
+            do
+            {
+                chunk = GenKeyChunk();
+                chunkList.Add(chunk);
+            } while (chunkList.Count < 4);
+
+
+            string key = $"{chunkList[3]}-{chunkList[2]}-{chunkList[1]}-{chunkList[0]}".ToUpper();
+            txtKey.Text = key;
         }
+
+        private string GenKeyChunk()
+        {
+            string chunk= "";
+            do
+            {
+                int index = random.Next(sampleMinNum.Length);
+                char an = sampleMinNum[index];
+                chunk += an;
+            } while (chunk.Length != 5);
+            return chunk;
+        }
+
 
         private bool Verify(string key)
         {
@@ -118,12 +151,6 @@ namespace KeygenTest
                     }
                 }
 
-                if (GetDay(chunks[2],1) == validDays &&
-                    GetDay(chunks[3], 2) == int.Parse(creationDay) &&
-                    GetYear(chunks[3], 0) == int.Parse(creationYear))
-                {
-                    return true;
-                }
 
                 //if (score == 1882 && checkDigitCount == 4)
                 //{
@@ -134,29 +161,43 @@ namespace KeygenTest
             return false;
         }
 
-        private int GetDay(string chunk, int indexStart)
+        private string GetDay(string keyChunk, int indexStart)
         {
-            int firstDigit = chunk[indexStart];
-            int secondDigit = chunk[indexStart + 1];
-            int thirdDigit = chunk[indexStart + 2];
+            int firstDigit = keyChunk[indexStart];
+            int secondDigit = keyChunk[indexStart + 1];
+            int thirdDigit = keyChunk[indexStart + 2];
 
             string hundred = firstDigit.ToString().Substring(firstDigit.ToString().Length - 1);
             string dozen = secondDigit.ToString().Substring(secondDigit.ToString().Length - 1);
             string unit = thirdDigit.ToString().Substring(thirdDigit.ToString().Length - 1);
 
-            return int.Parse(hundred + dozen + unit);
+            return hundred + dozen + unit;
         }
 
-        private int GetYear(string chunk, int indexStart)
+        private string GetYear(string keyChunk, int indexStart)
         {
-            int firstDigit = chunk[indexStart];
-            int secondDigit = chunk[indexStart + 1];
+            int firstDigit = keyChunk[indexStart];
+            int secondDigit = keyChunk[indexStart + 1];
             
             string dozen = firstDigit.ToString().Substring(firstDigit.ToString().Length - 1);
             string unit = secondDigit.ToString().Substring(secondDigit.ToString().Length - 1);
 
-            return int.Parse(dozen + unit);
+            return dozen + unit;
         }
+
+        private string GetCNPJRef(string keyChunk, int indexStart)
+        {
+            int firstDigit = keyChunk[indexStart];
+            int secondDigit = keyChunk[indexStart + 1];
+            int thirdDigit = keyChunk[indexStart + 2];
+
+            string hundred = firstDigit.ToString().Substring(firstDigit.ToString().Length - 1);
+            string dozen = secondDigit.ToString().Substring(secondDigit.ToString().Length - 1);
+            string unit = thirdDigit.ToString().Substring(thirdDigit.ToString().Length - 1);
+
+            return hundred + dozen + unit;
+        }
+
 
         private bool VerifyNew(string key, int validDays, string CNPJ = "11222333000181")
         {
@@ -220,78 +261,111 @@ namespace KeygenTest
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            txtKeys.Text = Generate();
+            Generate();
         }
+
+        private string RefCNPJ(string cnpj)
+        {
+            int firstValue = 0;
+            int secondValue = 0;
+
+            char[] chars = cnpj.Substring(0, 12).ToArray();
+            int mult = 1;
+            for (int i = chars.Length - 1; i >= 0; i--)
+            {
+                if (mult == 9)
+                    mult = 2;
+                else
+                    mult++;
+
+                int valor = int.Parse(chars[i].ToString());
+                firstValue += (mult * valor);
+            }
+            chars = cnpj.Substring(0, 13).ToArray();
+            mult = 1;
+            for (int i = chars.Length - 1; i >= 0; i--)
+            {
+                if (mult == 9)
+                    mult = 2;
+                else
+                    mult++;
+
+                int valor = int.Parse(chars[i].ToString());
+                secondValue += (mult * valor);
+            }
+            return ((firstValue + secondValue) % 1000).ToString();
+        }
+
+        private void CheckCNPJ(string cnpj)
+        {
+            cnpj = cnpj.Replace(" ", "");
+            cnpj = cnpj.Replace(".", "");
+            cnpj = cnpj.Replace("/", "");
+            cnpj = cnpj.Replace("-", "");
+
+            int firstValue = 0;
+            int secondValue = 0;
+
+            char[] chars = cnpj.Substring(0, 12).ToArray();
+            int mult = 1;
+            for (int i = chars.Length - 1; i >= 0; i--)
+            {
+                if (mult == 9)
+                    mult = 2;
+                else
+                    mult++;
+
+                int valor = int.Parse(chars[i].ToString());
+                firstValue += (mult * valor);
+            }
+            chars = cnpj.Substring(0, 13).ToArray();
+            mult = 1;
+            for (int i = chars.Length - 1; i >= 0; i--)
+            {
+                if (mult == 9)
+                    mult = 2;
+                else
+                    mult++;
+
+                int valor = int.Parse(chars[i].ToString());
+                secondValue += (mult * valor);
+            }
+            int fristDigit = int.Parse(cnpj.Substring(12, 1));
+            int secondDigit = int.Parse(cnpj.Substring(13, 1));
+            firstValue = firstValue % 11;
+            secondValue = secondValue % 11;
+        }
+
 
         private void btnGiveValues_Click(object sender, EventArgs e)
         {
-            int valuea = 0;
-            int valueb = 0;
-            bool isValid = false;
-            string cnpj = mtbCNPJ.Text.Replace(" ","");
+            CheckCNPJ(mtbCNPJ.Text);
+        }
+
+        private void mtbCNPJ_TextChanged(object sender, EventArgs e)
+        {
+            string cnpj = mtbCNPJ.Text;
             if (cnpj.Length == 14)
             {
-                char[] chars = cnpj.Substring(0, 12).ToArray();
-                int sum = 0;
-                int mult = 1;
-                for (int i = chars.Length -1 ; i >= 0; i--)
-                {
-                    if (mult == 9)
-                        mult = 2;
-                    else
-                        mult++;
-                    int valor = int.Parse(chars[i].ToString());
-                    sum += (mult * valor);
-                }
-                valuea = sum;
-                int resto = sum % 11;
-                int eighth = int.Parse(cnpj.Substring(12, 1));
-                if ((11 - resto) == eighth)
-                {
-                    chars = cnpj.Substring(0, 13).ToArray();
-                    sum = 0;
-                    mult = 1;
-                    for (int i = chars.Length - 1; i >= 0; i--)
-                    {
-                        if (mult == 9)
-                            mult = 2;
-                        else
-                            mult++;
-                        int valor = int.Parse(chars[i].ToString());
-                        sum += (mult * valor);
-                    }
-                    valueb = sum;
-                    resto = sum % 11;
-                    eighth = int.Parse(cnpj.Substring(13, 1));
-                    if ((11 - resto) == eighth)
-                    {
-                        isValid = true;
-                    }
-                    else
-                    {
-                        isValid = false;
-                    }
-                }
-                else
-                {
-                    isValid = false;
-                }
-            }
-
-            if (isValid)
-                lblValidOrNot.Text = "Valido";
-            else
-                lblValidOrNot.Text = "Inválido";
-
-            if (cnpj.Length == 14)
-            {
-                int digitA = int.Parse(cnpj.Substring(12, 2));
-                MessageBox.Show((valuea + valueb + digitA).ToString()); 
+                txtRefCNPJ.Text = RefCNPJ(cnpj);
             }
         }
 
-        private void Cheque()
+        private void btnCheckValues_Click(object sender, EventArgs e)
         {
+            string[] keyChunks = txtKey.Text.ToLower().Split('-');
+
+            string refCNPJ = GetCNPJRef(keyChunks[1], 2);
+            txtKeyRefCHPJ.Text = refCNPJ;
+
+            int year = int.Parse("20" + GetYear(keyChunks[3], 0));
+            int yearDays = int.Parse(GetDay(keyChunks[3], 2));
+            DateTime date = new DateTime(year, 1, 1);
+            date = date.AddDays(yearDays-1);
+            dtpKeyRefCreation.Value = date;
+
+            int validDays = int.Parse(GetDay(keyChunks[2], 2));
+            nudKeyRefValidDays.Value = validDays;
 
         }
     }
