@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using MySql.Data.MySqlClient;
 
 namespace KeyValues
 {
@@ -10,13 +13,63 @@ namespace KeyValues
     {
         static void Main(string[] args)
         {
-
-            CalcValues();
+            List<Key> Keys = ConectAndQueryKeys();
+            CalculeKeysValues(Keys);
+            Console.ReadKey();
+            //CalcValues();
         }
 
-        private static void GenerateAll()
+        private static void CalculeKeysValues(List<Key> keys)
         {
-            Console.ReadKey();
+            int sum = 0;
+            foreach (Key key in keys)
+            {
+                int value = CalculateKeyValue(key.KeyValue);
+                sum += value;
+                Console.WriteLine(key.KeyValue + " -> " + value);
+            }
+            Console.WriteLine("Total: " + sum + "\nMédia: " + sum / keys.Count);
+        }
+
+        private static int CalculateKeyValue(string key)
+        {
+            key = key.Replace("-", "");
+            key = key.Trim();
+            key = key.ToLower();
+            char[] vs = key.ToArray();
+            int sum = 0;
+            foreach (char carac in vs)
+            {
+                int value = carac;
+                sum += value;
+            }
+            return sum;
+        }
+
+        private static List<Key> ConectAndQueryKeys(string cmd = "Select `keyValue` from `key`")
+        {
+            string connection = "SERVER = localhost;";
+            connection += "DATABASE = xmlsender;";
+            connection += "UID = user;";
+            connection += "PASSWORD = user;";
+            connection += "PORT = 3306;";
+            //connection += "CHARSET = UTF-8;";
+
+            MySqlConnection conn = new MySqlConnection(connection);
+            conn.Open();
+            DataTable table = new DataTable();
+
+            MySqlCommand myCMD = new MySqlCommand(cmd);
+            myCMD.Connection = new MySqlConnection(connection);
+
+            MySqlDataAdapter data = new MySqlDataAdapter(myCMD);
+            data.Fill(table);
+            List<Key> keys = (from DataRow row in table.Rows
+             select new Key()
+             {
+                 KeyValue = row["keyValue"].ToString()
+             }).ToList();
+            return keys;
         }
 
         private bool VerifyCNPJ(string rawcnpj)
@@ -230,5 +283,10 @@ namespace KeyValues
             //    }
             //} while (!exit);
         }
+    }
+
+    public class Key
+    {
+        public string KeyValue { get; set; }
     }
 }

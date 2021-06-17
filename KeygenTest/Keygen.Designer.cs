@@ -46,6 +46,7 @@ namespace KeygenTest
             this.btnCheckValues = new System.Windows.Forms.Button();
             this.txtRefCNPJ = new System.Windows.Forms.TextBox();
             this.txtKeyRefCHPJ = new System.Windows.Forms.TextBox();
+            this.btnSaveDB = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nudValidDays)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudKeyRefValidDays)).BeginInit();
             this.SuspendLayout();
@@ -207,7 +208,7 @@ namespace KeygenTest
             // 
             // btnCheckValues
             // 
-            this.btnCheckValues.Location = new System.Drawing.Point(307, 185);
+            this.btnCheckValues.Location = new System.Drawing.Point(307, 230);
             this.btnCheckValues.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnCheckValues.Name = "btnCheckValues";
             this.btnCheckValues.Size = new System.Drawing.Size(112, 35);
@@ -230,11 +231,23 @@ namespace KeygenTest
             this.txtKeyRefCHPJ.Size = new System.Drawing.Size(100, 26);
             this.txtKeyRefCHPJ.TabIndex = 21;
             // 
+            // btnSaveDB
+            // 
+            this.btnSaveDB.Location = new System.Drawing.Point(307, 173);
+            this.btnSaveDB.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnSaveDB.Name = "btnSaveDB";
+            this.btnSaveDB.Size = new System.Drawing.Size(112, 35);
+            this.btnSaveDB.TabIndex = 22;
+            this.btnSaveDB.Text = "Save DB";
+            this.btnSaveDB.UseVisualStyleBackColor = true;
+            this.btnSaveDB.Click += new System.EventHandler(this.btnSaveDB_Click);
+            // 
             // Keygen
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(432, 320);
+            this.Controls.Add(this.btnSaveDB);
             this.Controls.Add(this.txtKeyRefCHPJ);
             this.Controls.Add(this.txtRefCNPJ);
             this.Controls.Add(this.btnCheckValues);
@@ -282,6 +295,7 @@ namespace KeygenTest
         private System.Windows.Forms.Button btnCheckValues;
         private System.Windows.Forms.TextBox txtRefCNPJ;
         private System.Windows.Forms.TextBox txtKeyRefCHPJ;
+        private System.Windows.Forms.Button btnSaveDB;
     }
 }
 

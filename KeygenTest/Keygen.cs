@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -367,6 +368,37 @@ namespace KeygenTest
             int validDays = int.Parse(GetDay(keyChunks[2], 2));
             nudKeyRefValidDays.Value = validDays;
 
+        }
+
+        private void btnSaveDB_Click(object sender, EventArgs e)
+        {
+            string cmd = "INSERT INTO `key` VALUES (0, 1, '" + txtKey.Text + "', NOW(),DATE_ADD(NOW(),INTERVAL 30 DAY), 30)";
+            InsertKey(cmd);
+        }
+
+        private void InsertKey(string cmd)
+        {
+            string connection = "SERVER = localhost;";
+            connection += "DATABASE = xmlsender;";
+            connection += "UID = user;";
+            connection += "PASSWORD = user;";
+            connection += "PORT = 3306;";
+
+            MySqlConnection conn = new MySqlConnection(connection);
+            try
+            {
+                conn.Open();
+                DataTable table = new DataTable();
+
+                MySqlCommand myCMD = new MySqlCommand(cmd);
+                myCMD.Connection = new MySqlConnection(connection);
+                myCMD.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
     }
 }
