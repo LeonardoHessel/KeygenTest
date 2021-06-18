@@ -153,7 +153,7 @@ namespace KeygenTest
             // 
             this.nudKeyRefValidDays.Location = new System.Drawing.Point(119, 269);
             this.nudKeyRefValidDays.Maximum = new decimal(new int[] {
-            180,
+            999,
             0,
             0,
             0});
