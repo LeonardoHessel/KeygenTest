@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -34,52 +35,59 @@ namespace KeygenTest
 
         private void Generate()
         {
-            DateTime creationDate = dtpCreation.Value.Date;
-            string creatYear = creationDate.Year.ToString().Substring(2);
-            string creatDay = creationDate.DayOfYear.ToString();
-            if (creatDay.Length == 2)
-                creatDay = "0" + creatDay;
-
-            string validDays = nudValidDays.Value.ToString();
-            if (validDays.Length == 2)
-                validDays = "0" + validDays;
-
             string cnpj = mtbCNPJ.Text;
+            DateTime creationDate = dtpCreation.Value.Date;
+            string year = creationDate.Year.ToString().Substring(2);
+            string dayOfYear = creationDate.DayOfYear.ToString();
+            dayOfYear = dayOfYear.Length == 2 ? "0" + dayOfYear : dayOfYear;
+            string validDays = nudValidDays.Value.ToString();
+            validDays = validDays.Length == 2 ? "0" + validDays : validDays;
+
+            string refFirst = year + dayOfYear;
+            string refSecond = RefCNPJ(cnpj).Substring(1, 2) + validDays;
+            string refThird = RefCNPJ(cnpj).Substring(0, 1);
 
             this.random = new Random();
             string chunk = "";
-            List<string> chunkList = new List<string>();
+            string[] chunks = new string[4];
+            string key = "";
+            do
+            {
+                chunk = GenKeyChunk();
+            } while (!(GetRef(chunk, 0, 4) == refFirst));
+            chunks[0] = chunk;
 
             do
             {
                 chunk = GenKeyChunk();
-            } while (!(GetYear(chunk, 0) == creatYear && GetDay(chunk, 2) == creatDay));
-
-            chunkList.Add(chunk);
-
+            } while (!(GetRef(chunk, 0, 4) == refSecond));
+            chunks[1] = chunk;
             do
             {
+                do
+                {
+                    chunk = GenKeyChunk();
+                } while (!(GetRef(chunk, 4,4) == refThird));
+                chunks[2] = chunk;
+                
                 chunk = GenKeyChunk();
-            } while (!(GetDay(chunk, 2) == validDays));
-
-            chunkList.Add(chunk);
-
-            do
-            {
-                chunk = GenKeyChunk();
-            } while (!(GetCNPJRef(chunk, 2) == RefCNPJ(cnpj)));
-
-            chunkList.Add(chunk);
-
-            do
-            {
-                chunk = GenKeyChunk();
-                chunkList.Add(chunk);
-            } while (chunkList.Count < 4);
-
-
-            string key = $"{chunkList[3]}-{chunkList[2]}-{chunkList[1]}-{chunkList[0]}".ToUpper();
+                chunks[2] = chunk;
+                key = $"{chunks[3]}-{chunks[2]}-{chunks[1]}-{chunks[0]}".ToUpper();
+            } while (!(VerifyKey(key) % 100 == int.Parse(refThird)));
             txtKey.Text = key;
+        }
+
+        private string GetRef(string chunk, int indexStart, int indexEnd)
+        {
+            char[] chars = new char[chunk.Length];
+            string refence = "";
+            for (int i = indexStart; i <= indexEnd; i++)
+            {
+                int digit = chars[1];
+                string value = digit.ToString().Substring(digit.ToString().Length - 1);
+                refence += value;
+            }
+            return refence;
         }
 
         private string GenKeyChunk()
@@ -124,7 +132,20 @@ namespace KeygenTest
             return false;
         }
 
-        private bool VerifyKey(string key, DateTime creationDate, int validDays, string cnpj)
+        private int VerifyKey(string key)
+        {
+            key = Regex.Replace(key, "/[^A-Za-z0-9]/g", "");
+            key = key.ToLower();
+            int some = 0;
+            for (int i = 0; i < key.Length; i++)
+            {
+                int value = key[i];
+                some += value;
+            }
+            return some;
+        }
+
+        private bool VerifyKey1(string key, DateTime creationDate, int validDays, string cnpj)
         {
             string creationYear = creationDate.Year.ToString().Substring(2,2);
             string creationDay = creationDate.DayOfYear.ToString();
