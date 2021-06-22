@@ -19,11 +19,7 @@ namespace KeygenTest
             InitializeComponent();
         }
 
-        string sample = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789";
         string sampleMinNum = "abcdefghijklmnopqrstuvwxyz0123456789";
-        string sampleMaiNum = "ABCDEFGHIJKLMENOPQRSTUVWXYZ0123456789";
-        string sampleA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        string sampleB = "ABCDEFGHJKNPQRSTUVWXYZ123456789";
 
         private Random random;
         private void Keygen_Load(object sender, EventArgs e)
@@ -51,6 +47,7 @@ namespace KeygenTest
             string chunk = "";
             string[] chunks = new string[4];
             string key = "";
+
             do
             {
                 chunk = GenKeyChunk();
@@ -62,6 +59,7 @@ namespace KeygenTest
                 chunk = GenKeyChunk();
             } while (!(GetRef(chunk, 0, 4) == refSecond));
             chunks[1] = chunk;
+
             do
             {
                 do
@@ -71,19 +69,19 @@ namespace KeygenTest
                 chunks[2] = chunk;
                 
                 chunk = GenKeyChunk();
-                chunks[2] = chunk;
+                chunks[3] = chunk;
                 key = $"{chunks[3]}-{chunks[2]}-{chunks[1]}-{chunks[0]}".ToUpper();
-            } while (!(VerifyKey(key) % 100 == int.Parse(refThird)));
+            } while (!(Verify(key)));
             txtKey.Text = key;
         }
 
         private string GetRef(string chunk, int indexStart, int indexEnd)
         {
-            char[] chars = new char[chunk.Length];
             string refence = "";
             for (int i = indexStart; i <= indexEnd; i++)
             {
-                int digit = chars[1];
+                char character = chunk[i];
+                int digit = character;
                 string value = digit.ToString().Substring(digit.ToString().Length - 1);
                 refence += value;
             }
@@ -105,82 +103,20 @@ namespace KeygenTest
 
         private bool Verify(string key)
         {
-            if (key != "")
-            {
-                int score = 0;
-                int checkDigit = key[0];
-                int checkDigitCount = 0;
-                string[] chunks = key.Split('-');
-                foreach (string chunk in chunks)
-                {
-                    if (chunk.Length != 4)
-                        return false;
-                    foreach (char an in chunk)
-                    {
-                        int value = an;
-                        if (value == checkDigit)
-                            checkDigitCount++;
-                        score += value;
-                    }
-                }
-                if (score == 1882 && checkDigitCount == 4)
-                {
-
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private int VerifyKey(string key)
-        {
-            key = Regex.Replace(key, "/[^A-Za-z0-9]/g", "");
+            Regex regex = new Regex("[^a-zA-Z0-9]");
+            key = regex.Replace(key, "");
             key = key.ToLower();
-            int some = 0;
+            int keyValue = 0;
             for (int i = 0; i < key.Length; i++)
             {
                 int value = key[i];
-                some += value;
+                keyValue += value;
             }
-            return some;
-        }
-
-        private bool VerifyKey1(string key, DateTime creationDate, int validDays, string cnpj)
-        {
-            string creationYear = creationDate.Year.ToString().Substring(2,2);
-            string creationDay = creationDate.DayOfYear.ToString();
-
-            if (!string.IsNullOrWhiteSpace(key) && key.Length == 23)
-            {
-                string[] chunks = key.Split('-');
-                //char[] keyValues = key.Replace("-", "").ToArray();
-
-                int chunkCount = 0;
-                int score = 0;
-                int checkDigit = 0;
-                int checkDigitCount = 0;
-
-                foreach (string chunk in chunks)
-                {
-                    if (chunk.Length != 5)
-                        return false;
-                    
-                    chunkCount++;
-                    foreach (char charecter in chunk)
-                    {
-                        int value = charecter;
-                        score += value;
-                    }
-                }
-
-
-                //if (score == 1882 && checkDigitCount == 4)
-                //{
-
-                //    return true;
-                //}
-            }
-            return false;
+            char verifChar = key[9];
+            int verifDigit = verifChar;
+            string verifString = verifDigit.ToString();
+            verifDigit = int.Parse(verifString.Substring(verifString.Length - 1));
+            return keyValue % 100 == verifDigit;
         }
 
         private string GetDay(string keyChunk, int indexStart)
@@ -218,67 +154,6 @@ namespace KeygenTest
             string unit = thirdDigit.ToString().Substring(thirdDigit.ToString().Length - 1);
 
             return hundred + dozen + unit;
-        }
-
-
-        private bool VerifyNew(string key, int validDays, string CNPJ = "11222333000181")
-        {
-            string year = DateTime.Now.Year.ToString().Substring(2,2);
-            string day = DateTime.Now.DayOfYear.ToString();
-            MessageBox.Show(day + "|" + year);
-            if (key != "")
-            {
-                //char[] chars = key.ToArray();
-                int score = 0;
-                //int checkDigit = key[0];
-                int checkDigitCount = 0;
-                string[] chunks = key.Split('-');
-                //int chunkNum = 0;
-                int[] chunkValue = new int[5];
-                bool pickNumber = true;
-                int firstNumber = 0;
-                for (int i = 0; i < chunks.Length; i++)
-                {
-                    string chunk = chunks[i];
-                    char[] chars = chunk.ToArray();
-                    for (int j = 0; j < chars.Length; j++)
-                    {
-                        int value = chars[j];
-                        chunkValue[i] += value;
-                        score += value;
-                        if (value < 97 && pickNumber)
-                        {
-                            pickNumber = false;
-                            firstNumber = int.Parse(chars[j].ToString());
-                        }
-                    }
-                }
-
-                //foreach (string chunk in chunks)
-                //{
-                //    chunkNum++;
-                //    if (chunk.Length != 4)
-                //        return false;
-                //    foreach (char an in chunk)
-                //    {
-                //        int value = an;
-                //        if (value == checkDigit)
-                //            checkDigitCount++;
-                //        score += value;
-                //        if (value < 97 && pickNumber)
-                //        {
-                //            pickNumber = false;
-                //            firstNumber = int.Parse(an.ToString());
-                //        }
-                //    }
-
-                if (/*score == 1882 && checkDigitCount == 3*/ true)
-                {
-                    MessageBox.Show(" | " + firstNumber);
-                    return true;
-                }
-            }
-            return false;
         }
 
         private void btnStart_Click(object sender, EventArgs e)
